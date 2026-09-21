@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Management - Projet Stage</title>
+    <link rel="stylesheet" href="{% static 'authentication/styles.css' %}">
+</head>
+<body class="management-page">
+
+<div class="navbar-dark">
+    <div> 
+        <a href="{% url 'home' %}" style="color: #007bff; text-decoration: none; font-weight: bold; margin-left: 5px;" class="btn-back"> Go Back to Home</a> 
+    </div>
+    <div style="color: #f8f9fa;">
+        Welcome! 
+        <a href="{% url 'profile' user_id=request.user.id %}" style="color: #007bff; text-decoration: none; font-weight: bold; margin-left: 5px;">
+            {{ request.user.username }} </a>
+        <a href="{% url 'logout' %}" style="color: #ef4444; text-decoration: none; font-size: 14px; font-weight: bold;">Sign Out</a>     
+    </div>
+</div>
+
+<div style="max-width: 900px; margin: 0 auto; padding: 20px;">
+    
+    {% if messages %}
+        {% for message in messages %}
+            {% if "PASSWORD_GENERATED:" not in message.message %}
+                <div class="error-message" style="background-color: {% if message.tags == 'success' %}#d4edda{% else %}%#f8d7da{% endif %}; color: {% if message.tags == 'success' %}#155724{% else %}%#721c24{% endif %};">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    <h1 style="text-align: center; color: #333; margin-bottom: 30px;"> Admin User Control Panel</h1>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        
+        <div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h3 style="margin-top:0; color:black; border-bottom: 2px solid #213a5667; padding-bottom: 5px;"> Add Corporate Employee</h3>
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Username</label>
+                    <input type="text" name="username" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Email Address</label>
+                    <input type="email" name="email" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                </div>
+
+                <button type="submit" style="width:100%; padding:10px; background:#007bff; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;"> Generate Password & Create User</button>
+            </form>
+        </div>
+
+        <div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h3 style="margin-top:0; color: #000000; border-bottom: 2px solid #213a5667; padding-bottom: 5px;"> Modify Employee Profiles</h3>
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="modify">
+                
+                <div style="margin-bottom: 25px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:600;">Select Employee Corporate Email</label>
+                    <select name="target_email" required style="width:100%; padding:10px; border:px solid #ccc; border-radius:4px; font-size:14px; background-color: white;">
+                        <option value="">-- Choose an Email Account --</option>
+                        {% for u in users %}
+                            {% if u.email %} <option value="{{ u.email }}">{{ u.email }} ({{ u.username }})</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" style="width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;"> Open Employee Profile File</button>
+            </form>
+        </div>
+
+        <div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); grid-column: span 2;">
+            <h3 style="margin-top:0; color: #080808; border-bottom: 2px solid #213a5667; padding-bottom: 5px;"> Delete Account</h3>
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                
+                <div style="margin-bottom: 25px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:600;">Select Account Corporate Email to Delete</label>
+                    <select name="email" required style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; font-size:14px; background-color: white;">
+                        <option value="">-- Choose an Email Account --</option>
+                        {% for u in users %}
+                            {% if u.email %} <option value="{{ u.email }}">{{ u.email }} ({{ u.username }})</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" style="width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;" onclick="return confirm('Are you completely sure you want to permanently delete this user account? This action cannot be reversed.');"> Permanently Delete Account</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    {% if messages %}
+        {% for message in messages %}
+            {% if "PASSWORD_GENERATED:" in message.message %}
+                const parts = "{{ message.message }}".split(":");
+                const passwordStr = parts[1];
+                const newUserId = parts[2]; // 👈 Captures the new user's database ID number
+                
+                const confirmCopy = confirm("User added successfully!\n\nGenerated Password: " + passwordStr + "\n\nClick OK to copy it and complete their specific structural profile.");
+                
+                if (confirmCopy || !confirmCopy) {
+                    navigator.clipboard.writeText(passwordStr).then(function() {
+                        alert("Password copied successfully!");
+                        // Directs your screen straight to that specific employee's profile folder!
+                        window.location.href = "/profile/" + newUserId + "/";
+                    });
+                }
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</script>

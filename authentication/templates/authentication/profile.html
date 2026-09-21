@@ -1,0 +1,423 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{% static 'authentication/styles.css' %}">
+    <meta charset="UTF-8">
+    <title>My Profile - Projet Stage</title>
+</head>
+<body class="profile-page">
+
+<div style="background-color: #212529; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; margin-bottom: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <div>
+        <a href="{% url 'home' %}" style="color: white; text-decoration: none; background: #6c757d; padding: 8px 15px; border-radius: 4px; font-size: 14px; margin-right: 10px;"> Home</a>
+        {% if request.user.is_superuser %}
+            <a href="{% url 'user_management' %}" style="color: white; text-decoration: none; background: #17a2b8; padding: 8px 15px; border-radius: 4px; font-size: 14px;"> Management</a>
+        {% endif %}
+    </div>
+    <div style="color: #f8f9fa;">
+            Welcome! 
+            <a href="{% url 'profile' user_id=request.user.id %}" style="color: #007bff; text-decoration: none; font-weight: bold; margin-left: 5px;">
+                 {{ request.user.username }} </a>
+    </div>
+</div>
+
+<div class="profile-container">
+    <h2> User Profile Information</h2>
+    <div id="director-block" style="margin-bottom:12px; padding:10px 14px; background:#f1f5f9; border-radius:8px; border:1px solid #e2e8f0; display:none;">
+        <strong style="display:block; color:#0f172a; font-size:13px;">Department Director</strong>
+        <div id="department-director-display" style="color:#0f172a; font-weight:600; margin-top:6px;"></div>
+    </div>
+    
+    <form method="POST" action="" class="form-grid">
+        {% csrf_token %}
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="success-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="form-group full-width">
+                <label>Username</label>
+                <input type="text" value="{{ target_user.username }}">
+        </div>
+
+        <div class="form-group">
+            <label>First Name</label>
+            <input type="text" name="first_name" value="{{ profile.first_name|default:'' }}">
+        </div>
+        <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" name="last_name" value="{{ profile.last_name|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label>Age</label>
+            <input type="number" name="age" value="{{ profile.age|default:'' }}">
+        </div>
+        <div class="form-group">
+            <label>Gender</label>
+            <select name="gender">
+                <option value="">-- Select --</option>
+                <option value="M" {% if profile.gender == 'M' %}selected{% endif %}>Male</option>
+                <option value="F" {% if profile.gender == 'F' %}selected{% endif %}>Female</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Email Address </label>
+            <input type="email" value="{{ target_user.email }}" readonly style="background-color: #e9ecef;">
+        </div>
+        <div class="form-group">
+            <label>Birth Date</label>
+            <input type="date" name="birth_date" value="{{ profile.birth_date|date:'Y-m-d' }}">
+        </div>
+
+        <div class="form-group">
+            <label>Country</label>
+            <select name="country" id="countrySelect" onchange="updateCities()">
+                <option value="">-- Select Country --</option>
+                <option value="France" {% if profile.country == 'France' %}selected{% endif %}>France</option>
+                <option value="Tunisia" {% if profile.country == 'Tunisia' %}selected{% endif %}>Tunisia</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>City</label>
+            <select name="city" id="citySelect">
+                <option value="">-- Select City --</option>
+                <!-- Server-side fallback options so dropdown always shows choices -->
+                <option value="Paris" {% if profile.city == 'Paris' %}selected{% endif %} data-dept="France">Paris</option>
+                <option value="Lyon" {% if profile.city == 'Lyon' %}selected{% endif %} data-dept="France">Lyon</option>
+                <option value="Marseille" {% if profile.city == 'Marseille' %}selected{% endif %} data-dept="France">Marseille</option>
+                <option value="Tunis" {% if profile.city == 'Tunis' %}selected{% endif %} data-dept="Tunisia">Tunis</option>
+                <option value="Sfax" {% if profile.city == 'Sfax' %}selected{% endif %} data-dept="Tunisia">Sfax</option>
+                <option value="Sousse" {% if profile.city == 'Sousse' %}selected{% endif %} data-dept="Tunisia">Sousse</option>
+            </select>
+        </div>
+
+        <div class="form-group full-width">
+            <label>Address</label>
+            <input type="text" name="address" value="{{ profile.address|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label>Department</label>
+            <select name="department" id="deptSelect" onchange="updateServicesAndJobs()">
+                <option value="">-- Select Department --</option>
+                <option value="Info" {% if profile.department == 'Info' %}selected{% endif %}>Info</option>
+                <option value="HR" {% if profile.department == 'HR' %}selected{% endif %}>Human Resources (HR)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Service</label>
+            <select name="service" id="serviceSelect">
+                <option value="">-- Select Service --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Job Title</label>
+            <select name="job_title" id="jobSelect" onchange="toggleSupervisorDropdowns()">
+                <option value="">-- Select Job Title --</option>
+                <option value="Director" {% if profile.job_title == 'Director' %}selected{% endif %}>Director</option>
+                <option value="Manager" {% if profile.job_title == 'Manager' %}selected{% endif %}>Manager</option>
+                <option value="Team Leader" {% if profile.job_title == 'Team Leader' %}selected{% endif %}>Team Leader</option>
+                <option value="Senior" {% if profile.job_title == 'Senior' %}selected{% endif %}>Senior</option>
+                <option value="Junior" {% if profile.job_title == 'Junior' %}selected{% endif %}>Junior</option>
+                <option value="Trainee" {% if profile.job_title == 'Trainee' %}selected{% endif %}>Trainee</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Salary </label>
+            <input type="number" step="0.01" name="salary" value="{{ profile.salary|default:'' }}">
+        </div>
+
+        <div class="form-group full-width" id="manager-select-wrapper" style="display: none; background: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 6px; margin-top: 10px;">
+            <label style="color: #b45309; font-weight: 700;">Assign to Manager Direct Report:</label>
+            <select name="parent_report" id="manager_report" style="border: 1px solid #d97706; background: #fff;">
+                <option value="">-- Select Team Manager --</option>
+                {% for mgr in managers %}
+                    <option value="{{ mgr.id }}" {% if profile.parent_report.id == mgr.id %}selected{% endif %}>
+                        {% if mgr.first_name %}{{ mgr.first_name }} {{ mgr.last_name }}{% else %}@{{ mgr.user.username }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group full-width" id="tl-select-wrapper" style="display: none; background: #eff6ff; border: 1px solid #dbeafe; padding: 15px; border-radius: 6px; margin-top: 10px;">
+            <label style="color: #1d4ed8; font-weight: 700;">Assign to Team Leader Direct Report:</label>
+            <select name="parent_report" id="tl_report" style="border: 1px solid #2563eb; background: #fff;">
+                <option value="">-- Select Team Leader --</option>
+                {% for tl in team_leaders %}
+                    <option value="{{ tl.id }}" {% if profile.parent_report.id == tl.id %}selected{% endif %}>
+                        {% if tl.first_name %}{{ tl.first_name }} {{ tl.last_name }}{% else %}@{{ tl.user.username }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if directors|length > 1 %}
+        <div class="form-group full-width" id="director-select-wrapper" style="display: none; background: #fff7ed; border: 1px solid #fde3c7; padding: 15px; border-radius: 6px; margin-top: 10px;">
+            <label style="color: #92400e; font-weight: 700;">Assign to Director:</label>
+            <select name="parent_report" id="director_report" style="border: 1px solid #c2410c; background: #fff;">
+                <option value="">-- Select Director --</option>
+                {% for d in directors %}
+                    <option value="{{ d.id }}" {% if profile.parent_report.id == d.id %}selected{% endif %}>
+                        {% if d.first_name %}{{ d.first_name }} {{ d.last_name }}{% else %}@{{ d.user.username }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn-save" style="margin-top: 15px;">Save Changes</button>
+    </form>
+</div>
+
+<script>
+    // Data from server: all managers and team leaders with department
+    const managersData = [
+        {% for m in managers_all %}
+        { id: {{ m.id }}, name: "{% if m.first_name %}{{ m.first_name|escapejs }} {{ m.last_name|escapejs }}{% else %}@{{ m.user.username|escapejs }}{% endif %}", dept: "{{ m.department|default:''|escapejs }}" },
+        {% endfor %}
+    ];
+
+    const teamLeadersData = [
+        {% for tl in team_leaders_all %}
+        { id: {{ tl.id }}, name: "{% if tl.first_name %}{{ tl.first_name|escapejs }} {{ tl.last_name|escapejs }}{% else %}@{{ tl.user.username|escapejs }}{% endif %}", dept: "{{ tl.department|default:''|escapejs }}" },
+        {% endfor %}
+    ];
+
+    const directorsData = [
+        {% for d in directors_all %}
+        { id: {{ d.id }}, name: "{% if d.first_name %}{{ d.first_name|escapejs }} {{ d.last_name|escapejs }}{% else %}@{{ d.user.username|escapejs }}{% endif %}", dept: "{{ d.department|default:''|escapejs }}" },
+        {% endfor %}
+    ];
+
+    function updateDirectorDisplay(dept) {
+        const el = document.getElementById('department-director-display');
+        if (!el) return;
+        const director = directorsData.find(d => d.dept === dept);
+        if (director) {
+            el.textContent = director.name;
+            el.style.display = 'block';
+        } else {
+            el.textContent = '';
+            el.style.display = 'none';
+        }
+    }
+
+    function updateManagerAndTLSelects(dept) {
+        const mgrSelect = document.getElementById('manager_report');
+        const tlSelect = document.getElementById('tl_report');
+        if (mgrSelect) {
+            const prev = mgrSelect.value;
+            mgrSelect.innerHTML = '<option value="">-- Select Team Manager --</option>';
+            managersData.filter(m => m.dept === dept).forEach(m => {
+                const option = document.createElement('option');
+                option.value = m.id;
+                option.textContent = m.name;
+                if (String(m.id) === String(prev) || String(m.id) === String("{{ profile.parent_report.id|default:'' }}")) option.selected = true;
+                mgrSelect.appendChild(option);
+            });
+        }
+        if (tlSelect) {
+            const prevTl = tlSelect.value;
+            tlSelect.innerHTML = '<option value="">-- Select Team Leader --</option>';
+            teamLeadersData.filter(t => t.dept === dept).forEach(t => {
+                const option = document.createElement('option');
+                option.value = t.id;
+                option.textContent = t.name;
+                if (String(t.id) === String(prevTl) || String(t.id) === String("{{ profile.parent_report.id|default:'' }}")) option.selected = true;
+                tlSelect.appendChild(option);
+            });
+            // Add managers to the TL dropdown (for flexibility in reporting structure)
+            managersData.filter(m => m.dept === dept).forEach(m => {
+                const option = document.createElement('option');
+                option.value = m.id;
+                option.textContent = m.name + ' (manager)';
+                if (String(m.id) === String(prevTl) || String(m.id) === String("{{ profile.parent_report.id|default:'' }}")) option.selected = true;
+                tlSelect.appendChild(option);
+            });
+            // Sort options: team leaders first, then managers
+            const optionsList = Array.from(tlSelect.options).slice(1);
+            optionsList.sort((a, b) => {
+                const aIsManager = a.textContent.includes('(manager)');
+                const bIsManager = b.textContent.includes('(manager)');
+                if (aIsManager === bIsManager) return a.textContent.localeCompare(b.textContent);
+                return aIsManager ? 1 : -1;
+            });
+            for (let i = 1; i < tlSelect.options.length; i++) {
+                tlSelect.remove(1);
+            }
+            optionsList.forEach(opt => tlSelect.appendChild(opt));
+        }
+    }
+    const dataMapping = {
+        cities: {
+            'France': ['Paris', 'Lyon', 'Marseille'],
+            'Tunisia': ['Tunis', 'Sfax', 'Sousse']
+        },
+        services: {
+            'Info': ['MOA', 'IT Support', 'Data ', 'Network'],
+            'HR': ['Payroll', 'Recruitment', 'Employee Relations']
+        },
+        jobs: {
+            'Info': ['Director', 'Manager', 'Team Leader', 'Senior', 'Junior', 'Trainee'],
+            'HR': ['Director', 'Manager', 'Team Leader', 'Senior', 'Junior', 'Trainee']
+        }
+    };
+
+    function updateCities() {
+        const country = document.getElementById('countrySelect').value;
+        const citySelect = document.getElementById('citySelect');
+        citySelect.innerHTML = '<option value="">-- Select City --</option>';
+        
+        if (dataMapping.cities[country]) {
+            dataMapping.cities[country].forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                if (city === "{{ profile.city }}") option.selected = true;
+                citySelect.appendChild(option);
+            });
+        }
+    }
+
+    function updateServicesAndJobs() {
+        const dept = document.getElementById('deptSelect').value;
+        const serviceSelect = document.getElementById('serviceSelect');
+        const jobSelect = document.getElementById('jobSelect');
+        const currentService = serviceSelect.value;
+        const currentJob = jobSelect.value;
+        
+        serviceSelect.innerHTML = '<option value="">-- Select Service --</option>';
+        jobSelect.innerHTML = '<option value="">-- Select Job Title --</option>';
+        
+        if (dataMapping.services[dept]) {
+            dataMapping.services[dept].forEach(srv => {
+                const option = document.createElement('option');
+                option.value = srv;
+                option.textContent = srv;
+                if (srv === "{{ profile.service }}") option.selected = true;
+                serviceSelect.appendChild(option);
+            });
+        }
+
+        if (dataMapping.jobs[dept]) {
+            dataMapping.jobs[dept].forEach(job => {
+                const option = document.createElement('option');
+                option.value = job;
+                option.textContent = job;
+                if (job === "{{ profile.job_title }}") option.selected = true;
+                jobSelect.appendChild(option);
+            });
+        }
+
+        // show/hide manager/team-leader selectors based on current job
+        // populate manager/tl selects for the selected department
+        updateManagerAndTLSelects(dept);
+        toggleSupervisorDropdowns();
+    }
+
+    function toggleSupervisorDropdowns() {
+        const job = (document.getElementById('jobSelect') && document.getElementById('jobSelect').value) || '';
+        const jobLower = job.trim().toLowerCase();
+        const mgrWrapper = document.getElementById('manager-select-wrapper');
+        const tlWrapper = document.getElementById('tl-select-wrapper');
+        const dirWrapper = document.getElementById('director-select-wrapper');
+        if (mgrWrapper) mgrWrapper.style.display = 'none';
+        if (tlWrapper) tlWrapper.style.display = 'none';
+        if (dirWrapper) dirWrapper.style.display = 'none';
+
+        // Director: top-level - no parent
+        if (jobLower === 'director') {
+            return;
+        }
+
+        // Manager -> should be attached under a Director
+        if (jobLower === 'manager') {
+            if (dirWrapper) dirWrapper.style.display = 'block';
+            return;
+        }
+
+        // Team Leader -> should select Manager as parent
+        if (jobLower === 'team leader' || jobLower === 'teamleader' || jobLower === 'team-leader') {
+            if (mgrWrapper) mgrWrapper.style.display = 'block';
+            return;
+        }
+
+        // For regular staff prefer Team Leader; fallback to Manager if no TL exists
+        if (['senior','junior','trainee'].includes(jobLower)) {
+            const tlSelect = document.getElementById('tl_report');
+            const hasTL = tlSelect && tlSelect.options && tlSelect.options.length > 1;
+            if (hasTL) {
+                if (tlWrapper) tlWrapper.style.display = 'block';
+            } else {
+                if (mgrWrapper) mgrWrapper.style.display = 'block';
+            }
+            return;
+        }
+
+        // Default: if no specific logic, hide all
+    }
+
+    // Initialize selects to current profile values when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure cities/services/jobs are populated first
+        updateCities();
+        
+        // Safe current department
+        const deptEl = document.getElementById('deptSelect');
+        const deptValue = (deptEl && deptEl.value) || "{{ profile.department|default:'' }}";
+
+        // Initialize services and jobs based on selected department
+        const serviceSelect = document.getElementById('serviceSelect');
+        const jobSelect = document.getElementById('jobSelect');
+        
+        serviceSelect.innerHTML = '<option value="">-- Select Service --</option>';
+        jobSelect.innerHTML = '<option value="">-- Select Job Title --</option>';
+        
+        if (dataMapping.services[deptValue]) {
+            dataMapping.services[deptValue].forEach(srv => {
+                const option = document.createElement('option');
+                option.value = srv;
+                option.textContent = srv;
+                if (srv === "{{ profile.service }}") option.selected = true;
+                serviceSelect.appendChild(option);
+            });
+        }
+
+        if (dataMapping.jobs[deptValue]) {
+            dataMapping.jobs[deptValue].forEach(job => {
+                const option = document.createElement('option');
+                option.value = job;
+                option.textContent = job;
+                if (job === "{{ profile.job_title }}") option.selected = true;
+                jobSelect.appendChild(option);
+            });
+        }
+
+        // Populate manager and TL selects for the selected department
+        updateManagerAndTLSelects(deptValue);
+
+        // Show director at top if present
+        updateDirectorDisplay(deptValue);
+
+        // Wire events
+        if (deptEl) {
+            deptEl.addEventListener('change', function() {
+                const newDept = this.value;
+                updateServicesAndJobs();
+                updateDirectorDisplay(newDept);
+                toggleSupervisorDropdowns();
+            });
+        }
+        const jobSel = document.getElementById('jobSelect');
+        if (jobSel) jobSel.addEventListener('change', toggleSupervisorDropdowns);
+    });
+
+</script>
+</body>
+</html>firs

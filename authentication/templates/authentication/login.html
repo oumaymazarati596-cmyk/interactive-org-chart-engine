@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{% static 'authentication/styles.css' %}">
+    <meta charset="UTF-8">
+    <title>Login - Projet Stage</title>
+</head>
+<body class="login-page">
+    
+<div class="login-card">
+
+
+    
+    <h2>Connexion</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="error-message">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="username">Email Address</label>
+            <input type="email" id="username" name="username" required placeholder="Enter your email">
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required placeholder="Enter your password">
+        </div>
+
+        <button type="submit">Log In</button>
+    </form>
+</div>
+
+</body>
+</html>

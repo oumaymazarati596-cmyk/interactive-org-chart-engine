@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home - Projet Stage</title>
+    <link rel="stylesheet" href="{% static 'authentication/styles.css' %}">
+</head>
+<body class="home-page">
+
+<div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+
+    
+
+    <div style="background-color: #212529; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; margin-bottom: 20px; font-family: 'Segoe UI', sans-serif;">
+        <div><strong>Portal Dashboard</strong></div>
+        <div style="color: #f8f9fa;">
+            Welcome! 
+            <a href="{% url 'profile' user_id=request.user.id %}" style="color: #007bff; text-decoration: none; font-weight: bold; margin-left: 5px;">
+                 {{ request.user.username }} </a>
+            <a href="{% url 'logout' %}" style="color: #ef4444; text-decoration: none; font-size: 14px; font-weight: bold;">Sign Out</a>     
+        </div>
+    </div>
+
+    <div style="background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 20px; text-align: center;">
+        <h2 style="color: #333; margin-top: 0;">Welcome to the Corporate Platform Office Dashboard</h2>
+        <p style="color: #666; font-size: 16px; margin-bottom: 30px;">Use the options below or navigate through your administration configuration setups.</p>
+        
+        <div style=" justify-content: center; gap: 15px; margin-top: 20px;">
+            <a href="{% url 'stickman' %}" style="display: inline-block; padding: 12px 30px; background-color: #17a2b8; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
+                Organization Module Maps
+            </a>
+        {% if request.user.is_superuser %}
+            <div style="margin-top: 20px;">
+                <a href="{% url 'user_management' %}" style="display: inline-block; padding: 12px 30px; background-color: #17a2b8; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">Go to User Management Panel</a>
+            </div>
+        {% endif %}
+        </div>
+    </div>
+
+    
+
+</div>
+
+</body>
+</html>

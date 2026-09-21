@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Access Denied - Projet Stage</title>
+    <link rel="stylesheet" href="{% static 'authentication/styles.css' %}">
+</head>
+<body class="error-page" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:40px 20px; background:linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%)">
+
+<div class="error-card" style="margin:auto; text-align:center;">
+    <h2> Error Occurred</h2>
+    <p>Please Login First.</p>
+    <a href="{% url 'login' %}" class="btn-login">Go to Login Page</a>
+</div>
+
+</body>
+</html>

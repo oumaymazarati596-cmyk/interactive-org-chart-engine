@@ -1,0 +1,226 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/static/authentication/styles.css">
+    <meta charset="UTF-8">
+    <title>My Profile - Projet Stage</title>
+</head>
+<body class="profile-page">
+
+<div style="background-color: #212529; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; margin-bottom: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <div>
+        <a href="/home/" style="color: white; text-decoration: none; background: #6c757d; padding: 8px 15px; border-radius: 4px; font-size: 14px; margin-right: 10px;"> Home</a>
+        
+            <a href="/management/" style="color: white; text-decoration: none; background: #17a2b8; padding: 8px 15px; border-radius: 4px; font-size: 14px;"> Management</a>
+        
+    </div>
+    <div style="color: #f8f9fa;">
+            Welcome! 
+            <a href="/profile/1/" style="color: #007bff; text-decoration: none; font-weight: bold; margin-left: 5px;">
+                 oumayma </a>
+    </div>
+</div>
+
+<div class="profile-container">
+    <h2> User Profile Information</h2>
+    
+    <form method="POST" action="" class="form-grid">
+        <input type="hidden" name="csrfmiddlewaretoken" value="nTzuODuaeysCydMVOH40Et7ct331GOffXcPkpv18rhAwdls1FSrWKCaa00S0u8SO">
+
+        
+
+        <div class="form-group full-width">
+                <label>Username</label>
+                <input type="text" value="oumayma">
+        </div>
+
+        <div class="form-group">
+            <label>First Name</label>
+            <input type="text" name="first_name" value="oumayma">
+        </div>
+        <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" name="last_name" value="Zarati">
+        </div>
+
+        <div class="form-group">
+            <label>Age</label>
+            <input type="number" name="age" value="22">
+        </div>
+        <div class="form-group">
+            <label>Gender</label>
+            <select name="gender">
+                <option value="">-- Select --</option>
+                <option value="M" >Male</option>
+                <option value="F" selected>Female</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Email Address </label>
+            <input type="email" value="mimizarati@gmail.com" readonly style="background-color: #e9ecef;">
+        </div>
+        <div class="form-group">
+            <label>Birth Date</label>
+            <input type="date" name="birth_date" value="2004-05-26">
+        </div>
+
+        <div class="form-group">
+            <label>Country</label>
+            <select name="country" id="countrySelect" onchange="updateCities()">
+                <option value="">-- Select Country --</option>
+                <option value="France" >France</option>
+                <option value="Tunisia" selected>Tunisia</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>City</label>
+            <select name="city" id="citySelect">
+                <option value="">-- Select City --</option>
+            </select>
+        </div>
+
+        <div class="form-group full-width">
+            <label>Address</label>
+            <input type="text" name="address" value="6 rue mefteh farhat">
+        </div>
+
+        <div class="form-group">
+            <label>Department</label>
+            <select name="department" id="deptSelect" onchange="updateServicesAndJobs()">
+                <option value="">-- Select Department --</option>
+                <option value="Info" selected>Info</option>
+                <option value="HR" >Human Resources (HR)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Service</label>
+            <select name="service" id="serviceSelect">
+                <option value="">-- Select Service --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Job Title</label>
+            <select name="job_title" id="jobSelect" onchange="toggleSupervisorDropdowns()">
+                <option value="">-- Select Job Title --</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Salary </label>
+            <input type="number" step="0.01" name="salary" value="1850.00">
+        </div>
+
+        <div class="form-group full-width" id="manager-select-wrapper" style="display: none; background: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 6px; margin-top: 10px;">
+            <label style="color: #b45309; font-weight: 700;">Assign to Manager Direct Report:</label>
+            <select name="parent_report" id="manager_report" style="border: 1px solid #d97706; background: #fff;">
+                <option value="">-- Select Team Manager --</option>
+                
+                    <option value="1" >
+                        oumayma Zarati
+                    </option>
+                
+                    <option value="13" >
+                        @Lilo
+                    </option>
+                
+            </select>
+        </div>
+
+        <div class="form-group full-width" id="tl-select-wrapper" style="display: none; background: #eff6ff; border: 1px solid #dbeafe; padding: 15px; border-radius: 6px; margin-top: 10px;">
+            <label style="color: #1d4ed8; font-weight: 700;">Assign to Team Leader Direct Report:</label>
+            <select name="parent_report" id="tl_report" style="border: 1px solid #2563eb; background: #fff;">
+                <option value="">-- Select Team Leader --</option>
+                
+            </select>
+        </div>
+
+        <button type="submit" class="btn-save" style="margin-top: 15px;">Save Changes</button>
+    </form>
+</div>
+
+<script>
+    const dataMapping = {
+        cities: {
+            'France': ['Paris', 'Lyon', 'Marseille'],
+            'Tunisia': ['Tunis', 'Sfax', 'Sousse']
+        },
+        services: {
+            'Info': ['MOA', 'IT Support', 'Data ', 'Network'],
+            'HR': ['Payroll', 'Recruitment', 'Employee Relations']
+        },
+        jobs: {
+            'Info': ['Director', 'Manager', 'Team Leader', 'Senior', 'Junior', 'Trainee'],
+            'HR': ['Director', 'Manager', 'Team Leader', 'Senior', 'Junior', 'Trainee']
+        }
+    };
+
+    function updateCities() {
+        const country = document.getElementById('countrySelect').value;
+        const citySelect = document.getElementById('citySelect');
+        citySelect.innerHTML = '<option value="">-- Select City --</option>';
+        
+        if (dataMapping.cities[country]) {
+            dataMapping.cities[country].forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                if (city === "Tunis") option.selected = true;
+                citySelect.appendChild(option);
+            });
+        }
+    }
+
+    function updateServicesAndJobs() {
+        const dept = document.getElementById('deptSelect').value;
+        const serviceSelect = document.getElementById('serviceSelect');
+        const jobSelect = document.getElementById('jobSelect');
+        
+        serviceSelect.innerHTML = '<option value="">-- Select Service --</option>';
+        jobSelect.innerHTML = '<option value=\"\">-- Select Job Title --</option>';
+        
+        if (dataMapping.services[dept]) {
+            dataMapping.services[dept].forEach(srv => {
+                const option = document.createElement('option');
+                option.value = srv;
+                option.textContent = srv;
+                if (srv === "MOA") option.selected = true;
+                serviceSelect.appendChild(option);
+            });
+        }
+
+        if (dataMapping.jobs[dept]) {
+            dataMapping.jobs[dept].forEach(job => {
+                const option = document.createElement('option');
+                option.value = job;
+                option.textContent = job;
+                if (job === "Manager") option.selected = true;
+                jobSelect.appendChild(option);
+            });
+        }
+
+        // show/hide manager/team-leader selectors based on current job
+        toggleSupervisorDropdowns();
+    }
+
+    function toggleSupervisorDropdowns() {
+        const job = document.getElementById('jobSelect').value;
+        const mgrWrapper = document.getElementById('manager-select-wrapper');
+        const tlWrapper = document.getElementById('tl-select-wrapper');
+
+        if (mgrWrapper) mgrWrapper.style.display = 'none';
+        if (tlWrapper) tlWrapper.style.display = 'none';
+
+        if (job === 'Manager') {
+            if (mgrWrapper) mgrWrapper.style.display = 'block';
+        } else if (job === 'Team Leader') {
+            if (tlWrapper) tlWrapper.style.display = 'block';
+        }
+    }
+
+    // Initialize selects to current profile values when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCities();
+        updateServicesAndJobs();
+    });

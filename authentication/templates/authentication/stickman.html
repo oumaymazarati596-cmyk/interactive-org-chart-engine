@@ -1,0 +1,355 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Department Hierarchy Maps</title>
+    <link rel="stylesheet" href="{% static 'authentication/styles.css' %}">
+</head>
+<body>
+
+<div class="navbar-dark">
+    <div class="navbar-brand">Enterprise Platform</div>
+    <div class="navbar-nav">
+        <a href="{% url 'home' %}" class="btn-back">Dashboard</a>
+        <a href="{% url 'profile' user_id=request.user.id %}" class="user-link">{{ request.user.username }}</a>
+        <a href="{% url 'logout' %}" class="btn-logout">Sign Out</a>
+    </div>
+</div>
+
+<div class="page-container" style="max-width: 1200px; padding: 20px;">
+    <h1 class="page-title">Organizational Chart Modules</h1>
+    <p class="page-subtitle">Select an operational business segment tab below to render its structural chain of command hierarchy map.</p>
+
+    <div class="dept-nav">
+        {% for dept_name in departments_map.keys %}
+            <div class="dept-tab {% if forloop.first %}active{% endif %}" onclick="switchDepartment('dept-{{ forloop.counter }}', this)">
+                {{ dept_name|upper }}
+            </div>
+        {% endfor %}
+    </div>
+
+    {% for dept_name, dept_data in departments_map.items %}
+        <div id="dept-{{ forloop.counter }}" class="map-view {% if forloop.first %}active{% endif %}">
+            <svg class="connections-layer" id="svg-dept-{{ forloop.counter }}"></svg>
+            
+            <div class="stickman-node dept-root-node" id="root-dept-{{ forloop.counter }}">
+                <div class="root-badge">DEPARTMENT</div>
+                <div class="root-title-text">{{ dept_name|upper }} DIVISION</div>
+            </div>
+
+            {% if dept_data.director %}
+                <div class="stickman-node employee-element director-element" 
+                     data-id="{{ dept_data.director.user.id }}"
+                     data-role="director"
+                     data-parent="">
+                    <div class="stick-figure-mini">
+                        <svg viewBox="0 0 40 60">
+                            <circle cx="20" cy="10" r="5" fill="none" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="15" x2="20" y2="35" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="22" x2="8" y2="26" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="22" x2="32" y2="26" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="35" x2="11" y2="52" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="35" x2="29" y2="52" stroke="#334155" stroke-width="2.5"/>
+                        </svg>
+                    </div>
+                    <div class="node-username">{{ dept_data.director.user.username }}</div>
+                </div>
+            {% endif %}
+
+            {% for manager in dept_data.managers %}
+                <div class="stickman-node employee-element manager-element" 
+                     data-id="{{ manager.user.id }}"
+                     data-role="manager"
+                     data-parent="{% if manager.parent_report %}{{ manager.parent_report.user.id }}{% endif %}">
+                    <div class="stick-figure-mini">
+                        <svg viewBox="0 0 40 60">
+                            <circle cx="20" cy="10" r="5" fill="none" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="15" x2="20" y2="35" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="22" x2="8" y2="26" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="22" x2="32" y2="26" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="35" x2="11" y2="52" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="35" x2="29" y2="52" stroke="#334155" stroke-width="2.5"/>
+                        </svg>
+                    </div>
+                    <div class="node-username">{{ manager.user.username }}</div>
+                </div>
+            {% endfor %}
+
+            {% for tl in dept_data.team_leaders %}
+                <div class="stickman-node employee-element team-leader-element" 
+                     data-id="{{ tl.user.id }}"
+                     data-role="team-leader"
+                     data-parent="{% if tl.parent_report %}{{ tl.parent_report.user.id }}{% endif %}">
+                    <div class="stick-figure-mini">
+                        <svg viewBox="0 0 40 60">
+                            <circle cx="20" cy="10" r="5" fill="none" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="15" x2="20" y2="35" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="22" x2="8" y2="26" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="22" x2="32" y2="26" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="35" x2="11" y2="52" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="35" x2="29" y2="52" stroke="#334155" stroke-width="2.5"/>
+                        </svg>
+                    </div>
+                    <div class="node-username">{{ tl.user.username }}</div>
+                </div>
+            {% endfor %}
+
+            {% for emp in dept_data.other_employees %}
+                <div class="stickman-node employee-element subordinate-element" 
+                     data-id="{{ emp.user.id }}"
+                     data-role="subordinate"
+                     data-parent="{% if emp.parent_report %}{{ emp.parent_report.user.id }}{% else %}null{% endif %}">
+                    <div class="stick-figure-mini">
+                        <svg viewBox="0 0 40 60">
+                            <circle cx="20" cy="10" r="5" fill="none" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="15" x2="20" y2="35" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="22" x2="8" y2="26" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="22" x2="32" y2="26" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="35" x2="11" y2="52" stroke="#334155" stroke-width="2.5"/>
+                            <line x1="20" y1="35" x2="29" y2="52" stroke="#334155" stroke-width="2.5"/>
+                        </svg>
+                    </div>
+                    <div class="node-username">{{ emp.user.username }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+    function switchDepartment(deptId, tabElement) {
+        document.querySelectorAll('.map-view').forEach(view => view.classList.remove('active'));
+        document.querySelectorAll('.dept-tab').forEach(tab => tab.classList.remove('active'));
+        document.getElementById(deptId).classList.add('active');
+        tabElement.classList.add('active');
+        drawConnections();
+    }
+
+    function initPositions() {
+        document.querySelectorAll('.map-view').forEach(view => {
+            const viewWidth = view.getBoundingClientRect().width || 1160;
+            const nodeWidth = 120;
+            const nodeHeight = 90;
+            const verticalGap = 90;
+            
+            const rootNode = view.querySelector('.dept-root-node');
+            if (rootNode) {
+                rootNode.style.left = ((viewWidth / 2) - 80) + 'px';
+                rootNode.style.top = '25px';
+            }
+
+            const allElements = view.querySelectorAll('.employee-element');
+            const elementMap = {};
+            const childrenMap = {};
+            
+            // Build maps
+            allElements.forEach(el => {
+                elementMap[el.dataset.id] = el;
+                const parentId = el.dataset.parent;
+                if (!childrenMap[parentId]) {
+                    childrenMap[parentId] = [];
+                }
+                childrenMap[parentId].push(el);
+            });
+
+            // Position director below root
+            const director = view.querySelector('.director-element');
+            if (director) {
+                director.style.left = ((viewWidth / 2) - (nodeWidth / 2)) + 'px';
+                director.style.top = '110px';
+            }
+
+            // Position all managers horizontally under director
+            const managers = view.querySelectorAll('.manager-element');
+            if (managers.length > 0) {
+                const mgrSpacing = Math.min(200, viewWidth / (managers.length + 1));
+                const mgrStartX = (viewWidth - (mgrSpacing * (managers.length - 1))) / 2 - (nodeWidth / 2);
+                
+                managers.forEach((mgr, index) => {
+                    mgr.style.left = (mgrStartX + (index * mgrSpacing)) + 'px';
+                    mgr.style.top = '200px';
+                });
+            }
+
+            // For each manager, position its team leaders and direct subordinates
+            managers.forEach(mgr => {
+                const mgrId = mgr.dataset.id;
+                const mgrChildren = childrenMap[mgrId] || [];
+                const mgrLeft = parseFloat(mgr.style.left);
+                const mgrCenterX = mgrLeft + (nodeWidth / 2);
+                
+                if (mgrChildren.length === 0) return;
+                
+                const childY = 350; // Team leaders and direct subordinates at same level
+                const totalSpacing = Math.min(150, (mgrChildren.length - 1) * 160);
+                const childSpacing = mgrChildren.length > 1 ? totalSpacing / (mgrChildren.length - 1) : 0;
+                const startX = mgrCenterX - (totalSpacing / 2);
+                
+                mgrChildren.forEach((child, index) => {
+                    const childX = startX + (index * childSpacing) - (nodeWidth / 2);
+                    const constrainedX = Math.max(10, Math.min(childX, viewWidth - nodeWidth - 10));
+                    child.style.left = constrainedX + 'px';
+                    child.style.top = childY + 'px';
+                });
+            });
+
+            // For each team leader, position its subordinates
+            const teamLeaders = view.querySelectorAll('.team-leader-element');
+            teamLeaders.forEach(tl => {
+                const tlId = tl.dataset.id;
+                const tlChildren = childrenMap[tlId] || [];
+                
+                if (tlChildren.length === 0) return;
+                
+                const tlLeft = parseFloat(tl.style.left);
+                const tlTop = parseFloat(tl.style.top);
+                const tlCenterX = tlLeft + (nodeWidth / 2);
+                const childY = tlTop + verticalGap + nodeHeight;
+                
+                const totalSpacing = Math.min(115, (tlChildren.length - 1) * 200);
+                const childSpacing = tlChildren.length > 1 ? totalSpacing / (tlChildren.length - 1) : 0;
+                const startX = tlCenterX - (totalSpacing / 2);
+                
+                tlChildren.forEach((child, index) => {
+                    const childX = startX + (index * childSpacing) - (nodeWidth / 2);
+                    const constrainedX = Math.max(1, Math.min(childX, viewWidth - nodeWidth - 10));
+                    child.style.left = constrainedX + 'px';
+                    child.style.top = childY + 'px';
+                });
+            });
+
+            // Update SVG size to fit all content
+            let maxBottom = 0;
+            allElements.forEach(el => {
+                const bottom = parseFloat(el.style.top) + nodeHeight;
+                if (bottom > maxBottom) maxBottom = bottom;
+            });
+            const rootBottom = rootNode ? parseFloat(rootNode.style.top) + 80 : 0;
+            if (rootBottom > maxBottom) maxBottom = rootBottom;
+            
+            const svg = view.querySelector('.connections-layer');
+            if (svg) {
+                svg.setAttribute('width', viewWidth);
+                svg.setAttribute('height', maxBottom + 100);
+            }
+            
+            // Also update container height
+            view.style.minHeight = (maxBottom + 150) + 'px';
+        });
+        
+        drawConnections();
+    }
+
+    function drawConnections() {
+        document.querySelectorAll('.map-view.active').forEach(view => {
+            const svg = view.querySelector('.connections-layer');
+            if (!svg) return;
+            svg.innerHTML = '';
+            
+            const root = view.querySelector('.dept-root-node');
+            const director = view.querySelector('.director-element');
+            const managers = view.querySelectorAll('.manager-element');
+            const teamLeaders = view.querySelectorAll('.team-leader-element');
+            const subordinates = view.querySelectorAll('.subordinate-element');
+            const allElements = view.querySelectorAll('.employee-element');
+            
+            function drawTreeBranch(parentX, parentY, childX, childY) {
+                const midY = parentY + (childY - parentY) / 2;
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const d = `M ${parentX} ${parentY} L ${parentX} ${midY} L ${childX} ${midY} L ${childX} ${childY}`;
+                path.setAttribute('d', d);
+                path.setAttribute('stroke', '#4f46e5');
+                path.setAttribute('stroke-width', '2.5');
+                path.setAttribute('fill', 'none');
+                svg.appendChild(path);
+            }
+
+            // Create a map of ID to element
+            const elementMap = {};
+            allElements.forEach(el => {
+                elementMap[el.dataset.id] = el;
+            });
+
+            // 1. Root to director
+            if (root && director) {
+                const rx = root.offsetLeft + (root.offsetWidth / 2);
+                const ry = root.offsetTop + root.offsetHeight;
+                const dx = director.offsetLeft + (director.offsetWidth / 2);
+                const dy = director.offsetTop;
+                drawTreeBranch(rx, ry, dx, dy);
+            }
+
+            // 2. Draw connections from parents to their children
+            // All employees have a data-parent attribute
+            allElements.forEach(child => {
+                const parentId = child.dataset.parent;
+                if (!parentId || parentId === '') return;
+                
+                const parent = elementMap[parentId];
+                if (!parent) return;
+
+                const px = parent.offsetLeft + (parent.offsetWidth / 2);
+                const py = parent.offsetTop + parent.offsetHeight;
+                const cx = child.offsetLeft + (child.offsetWidth / 2);
+                const cy = child.offsetTop;
+
+                drawTreeBranch(px, py, cx, cy);
+            });
+        });
+    }
+    
+    
+
+    // Dynamic drag framework engine 
+    let activeNode = null;
+    let startX = 0, startY = 0;
+    let initialLeft = 0, initialTop = 0;
+    
+    document.addEventListener('mousedown', e => {
+        const node = e.target.closest('.stickman-node');
+        if (node) {
+            activeNode = node;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = node.offsetLeft;
+            initialTop = node.offsetTop;
+            activeNode.style.zIndex = 1000;
+            e.preventDefault();
+        }
+    });
+
+    document.addEventListener('mousemove', e => {
+        if (activeNode) {
+            const container = activeNode.parentElement.getBoundingClientRect();
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            let newLeft = initialLeft + deltaX;
+            let newTop = initialTop + deltaY;
+            
+            const nodeWidth = activeNode.offsetWidth || 120;
+            const nodeHeight = activeNode.offsetHeight || 90;
+
+            activeNode.style.left = Math.max(0, Math.min(newLeft, container.width - nodeWidth)) + 'px';
+            activeNode.style.top = Math.max(0, Math.min(newTop, container.height - nodeHeight)) + 'px';
+            
+            drawConnections();
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (activeNode) {
+            activeNode.style.zIndex = 10;
+            activeNode = null;
+        }
+    });
+
+    window.addEventListener('resize', initPositions);
+    window.onload = function() {
+        initPositions();
+        setTimeout(initPositions, 150);
+    };
+</script>
+</body>
+</html>
