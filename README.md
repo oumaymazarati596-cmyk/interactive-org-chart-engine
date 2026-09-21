@@ -18,7 +18,7 @@ A web application featuring an interactive organizational chart tree engine and 
 ## Screenshots
 
 ### 1. Portal Dashboard
-![Portal Dashboard](assets/dashboard.png)
+![Portal Dashboard](Screenshot 2026-09-22 000154.png)
 
 ### 2. Admin User Control Panel
 ![Admin User Control Panel](assets/admin_panel.png)
