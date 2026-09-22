@@ -21,7 +21,7 @@ A web application featuring an interactive organizational chart tree engine and 
 ![Portal Dashboard](https://github.com/oumaymazarati596-cmyk/interactive-org-chart-engine/blob/2e79f56066bc1dd22d11f4424617124736e97f76/Screenshot%202026-09-22%20000154.png)
 
 ### 2. Admin User Control Panel
-![Admin User Control Panel](assets/admin_panel.png)
+![Admin User Control Panel](https://github.com/oumaymazarati596-cmyk/interactive-org-chart-engine/blob/cdf6e9d3818e0456f0f1080d8a849ca2b8565942/Screenshot%202026-09-22%20000241.png)
 
 ### 3. Interactive Org Chart
 ![Interactive Org Chart Engine](assets/org_chart.png)
